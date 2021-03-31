@@ -1,4 +1,6 @@
+import json
 import os
+from urllib import request
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -21,3 +23,15 @@ class Router:
                 "time": datetime.utcnow(),
             }
             return response
+
+        @self.router.post("/deployed")
+        def trigger_deployed_hook():
+            """
+            Trigger the `deployed` hook, which registers this API to the engine room.
+            """
+
+            data = json.dumps(
+                {"type": "engine.deployed", "engine_slug": os.getenv("ENGINE_SLUG")}
+            ).encode("ascii")
+            req = request.Request(os.getenv("CALLBACK_URL"), data=data)
+            return request.urlopen(req)

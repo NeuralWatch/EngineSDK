@@ -3,13 +3,14 @@ import os
 import google.cloud.logging
 from fastapi import FastAPI
 
-from enginesdk.v1.routers import docs, health, predict, schemas
+from enginesdk.v1.routers import docs, health, predict, info
 
 
 class EngineAPI:
-    def __init__(self, predictor, factory, input, output, title):
+    def __init__(self, predictor, factory, input, output, **options):
         os.environ["TZ"] = "UTC"
         title_detail = os.getenv("PROJECT_ID", "Local")
+        title = f"{options.get('name', 'API')}: {title_detail}"
         version = os.getenv("SHORT_SHA", "local")
 
         client = google.cloud.logging.Client()
@@ -17,7 +18,7 @@ class EngineAPI:
         client.setup_logging()
 
         self.api = FastAPI(
-            title=f"{title}: {title_detail}",
+            title=title,
             version=version,
             docs_url=None,
             redoc_url=None,
@@ -36,5 +37,6 @@ class EngineAPI:
         )
         self.api.include_router(docs.Router().router, prefix=api_v1_prefix)
         self.api.include_router(
-            schemas.Router(input=input, output=output).router, prefix=api_v1_prefix
+            info.Router(input=input, output=output, options=options).router,
+            prefix=api_v1_prefix,
         )
