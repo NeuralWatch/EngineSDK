@@ -18,7 +18,7 @@ class Router:
 
         @self.router.get("/openapi.json", include_in_schema=False)
         async def get_open_api_endpoint(
-            api_key: APIKey = Depends(auth_service.authenticate_admin),
+            api_key: APIKey = Depends(self.auth_service.authenticate_admin),
         ):
             response = JSONResponse(
                 get_openapi(title="AI Engine API", version=1, routes=self.router.routes)
@@ -27,7 +27,7 @@ class Router:
 
         @self.router.get("/docs", tags=["Documentation"])
         async def get_documentation(
-            api_key: APIKey = Depends(auth_service.authenticate_admin),
+            api_key: APIKey = Depends(self.auth_service.authenticate_admin),
         ):
             response = get_swagger_ui_html(openapi_url="/v1/openapi.json", title="docs")
             response.set_cookie(
