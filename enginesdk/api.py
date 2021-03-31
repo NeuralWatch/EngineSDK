@@ -1,4 +1,5 @@
 import os
+import yaml
 
 import google.cloud.logging
 from fastapi import FastAPI
@@ -7,7 +8,9 @@ from enginesdk.v1.routers import docs, health, predict, info
 
 
 class EngineAPI:
-    def __init__(self, predictor, factory, input, output, **options):
+    def __init__(self, predictor, factory, input, output):
+        options = self._load_options()
+
         os.environ["TZ"] = "UTC"
         title_detail = os.getenv("PROJECT_ID", "Local")
         title = f"{options.get('name', 'API')}: {title_detail}"
@@ -40,3 +43,15 @@ class EngineAPI:
             info.Router(input=input, output=output, options=options).router,
             prefix=api_v1_prefix,
         )
+
+    def _load_options(self):
+        """
+        Loads an `engine.yaml` file if it exists and makes its contents accessible
+        via the /info route.
+        """
+        try:
+            with open("engine.yaml", "r") as stream:
+                return yaml.safe_load(stream)
+        except FileNotFoundError:
+            print("No engine.yaml found.")
+            return {}
