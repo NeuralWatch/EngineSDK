@@ -22,7 +22,7 @@ class Router:
         async def predict_flow(gid: str = None, input: input_type = None):
             output = predictor.run(input)
             if gid:
-                self.callback(gid=gid, output=output)
+                callback(gid=gid, output=output)
             return output
 
         @self.router.post("/predict/", status_code=200)
@@ -43,5 +43,5 @@ class Router:
             """Asynchronous prediction endpoint.
             This method response with a status 200, then runs the prediction as\
             a background job. The result is sent via callback to the web back-end."""
-            background_tasks.add_task(self.predict_flow, gid=gid, input=input)
+            background_tasks.add_task(predict_flow, gid=gid, input=input)
             return {"status": 200}
