@@ -9,11 +9,11 @@ from enginesdk.v1.routers import docs, health, predict, info
 
 class EngineAPI:
     def __init__(self, predictor, factory, input, output):
-        options = self._load_options()
+        settings = self._load_settings()
 
         os.environ["TZ"] = "UTC"
         title_detail = os.getenv("PROJECT_ID", "Local")
-        title = f"{options.get('name', 'API')}: {title_detail}"
+        title = f"{settings.get('name', 'API')}: {title_detail}"
         version = os.getenv("SHORT_SHA", "local")
 
         client = google.cloud.logging.Client()
@@ -40,18 +40,22 @@ class EngineAPI:
         )
         self.api.include_router(docs.Router().router, prefix=api_v1_prefix)
         self.api.include_router(
-            info.Router(input=input, output=output, options=options).router,
+            info.Router(input=input, output=output, settings=settings).router,
             prefix=api_v1_prefix,
         )
 
-    def _load_options(self):
+    def _load_settings(self):
         """
         Loads an `engine.yaml` file if it exists and makes its contents accessible
-        via the /info route.
+        in the engine as env variables, as well as to the outside via the /info route.
         """
         try:
             with open("engine.yaml", "r") as stream:
-                return yaml.safe_load(stream)
+                settings = yaml.safe_load(stream)
+                for key, value in settings.items():
+                    if not os.environ[key.upper()]:
+                        os.environ[key.upper()] = value
+                return settings
         except FileNotFoundError:
             print("No engine.yaml found.")
             return {}
