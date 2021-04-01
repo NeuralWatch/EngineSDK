@@ -8,7 +8,7 @@ from starlette import status
 from enginesdk.config import apisecrets
 
 SECRET_KEY = apisecrets.SECRET_KEY
-API_KEY_NAME = getenv("API_KEY_NAME")
+API_KEY_NAME = getenv("API_KEY_NAME", "access_token")
 
 
 class AuthService:

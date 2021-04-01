@@ -13,7 +13,7 @@ class Router:
     def __init__(self):
         self.router = APIRouter()
         self.auth_service = AuthService()
-        self.API_KEY_NAME = getenv("API_KEY_NAME")
+        self.API_KEY_NAME = getenv("API_KEY_NAME", "access_token")
         self.COOKIE_DOMAIN = getenv("COOKIE_DOMAIN")
 
         @self.router.get("/openapi.json", include_in_schema=False)
