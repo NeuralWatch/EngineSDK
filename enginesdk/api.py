@@ -1,4 +1,5 @@
 import os
+import logging
 import yaml
 
 import google.cloud.logging
@@ -55,7 +56,8 @@ class EngineAPI:
                 for key, value in settings.items():
                     if not os.environ[key.upper()]:
                         os.environ[key.upper()] = value
+                logging.info("engine.yaml successfully loaded.")
                 return settings
         except FileNotFoundError:
-            print("No engine.yaml found.")
+            logging.warning("engine.yaml not found.")
             return {}

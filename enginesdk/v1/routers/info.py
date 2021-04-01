@@ -23,7 +23,7 @@ class Router:
             """
 
             return {
-                "engine": settings,
+                "engine": {k.lower(): v for k, v in settings.items()},
                 "schema": {
                     "input": input.schema(),
                     "output": output.schema(),

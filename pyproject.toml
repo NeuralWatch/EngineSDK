@@ -3,9 +3,7 @@ name = "enginesdk"
 version = "0.1.0"
 description = "AI Engine SDK"
 authors = ["yann <yann.leguilly@gmail.com>", "Trouni Tiet <trouni@gmail.com>"]
-packages = [
-    { include = "enginesdk" },
-]
+packages = [{ include = "enginesdk" }]
 
 [tool.poetry.dependencies]
 python = "3.7.9"
