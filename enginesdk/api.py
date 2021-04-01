@@ -54,7 +54,9 @@ class EngineAPI:
             with open("engine.yaml", "r") as stream:
                 settings = yaml.safe_load(stream)
                 for key, value in settings.items():
-                    if not os.environ[key.upper()]:
+                    try:
+                        os.environ[key.upper()]
+                    except KeyError:
                         os.environ[key.upper()] = value
                 logging.info("engine.yaml successfully loaded.")
                 return settings
