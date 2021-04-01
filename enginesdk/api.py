@@ -21,12 +21,14 @@ class EngineAPI:
         """
         self._set_cloud_logging()
 
+        settings = self._load_settings()
+
         self.api = self._create_api(
             predictor=predictor,
             input=input,
             output=output,
             factory=factory,
-            settings=self._load_settings(),
+            settings=settings,
         )
 
     def _create_api(self, predictor, factory, input, output, settings):
@@ -71,8 +73,8 @@ class EngineAPI:
             with open("engine.yaml", "r") as stream:
                 settings = yaml.safe_load(stream)
                 for key, value in settings.items():
-                    if not os.getenv(key.upper()):
-                        os.environ[key.upper()] = value
+                    if not os.getenv(str(key.upper())):
+                        os.environ[str(key.upper())] = str(value)
                 logging.info("engine.yaml successfully loaded.")
                 return settings
         except FileNotFoundError:
