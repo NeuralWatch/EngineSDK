@@ -6,39 +6,30 @@ import google.cloud.logging
 from fastapi import FastAPI
 
 from enginesdk.v1.routers import docs, health, predict, info
+from enginesdk.config import settings
 
 
 class EngineAPI:
-    def __init__(self, predictor, input, output, factory):
+    def __init__(self, predictor):
         """
-        Instantiates a FastAPI application with pre-configured
-        routes and services for AI Engines.
-        The constructor expects the following kwargs:
-        - predictor: object inheriting from services.predict.BasePredictor
-        - input: pydantic model for  the AI Engine's input
-        - output: pydantic model for  the AI Engine's output
-        - factory: object responding to a `mock_input` instance method producing an input sample
+        Instantiates a FastAPI application with pre-configured routes and services for AI Engines.
+        The constructor expects a predictor object inheriting from services.predict.BasePredictor.
         """
         self._set_cloud_logging()
 
-        settings = self._load_settings()
+        options = self._load_options()
 
         self.api = self._create_api(
             predictor=predictor,
-            input=input,
-            output=output,
-            factory=factory,
-            settings=settings,
+            options=options,
         )
 
-    def _create_api(self, predictor, factory, input, output, settings):
-        title_detail = os.getenv("PROJECT_ID", "Local")
-        title = f"{settings.get('name', 'API')}: {title_detail}"
-        version = os.getenv("SHORT_SHA", "local")
+    def _create_api(self, predictor, options):
+        title = f"{options.get('name', 'API')}: {settings.project_id}"
 
         api = FastAPI(
             title=title,
-            version=version,
+            version=settings.revision,
             docs_url=None,
             redoc_url=None,
             openapi_url="/v1/openapi.json",
@@ -49,19 +40,17 @@ class EngineAPI:
         # /v1
         api_v1_prefix = "/v1"
         api.include_router(
-            predict.Router(
-                input_type=input, predictor=predictor, predict_factory=factory
-            ).router,
+            predict.Router(predictor=predictor).router,
             prefix=api_v1_prefix,
         )
         api.include_router(docs.Router().router, prefix=api_v1_prefix)
         api.include_router(
-            info.Router(input=input, output=output, settings=settings).router,
+            info.Router(predictor=predictor, options=options).router,
             prefix=api_v1_prefix,
         )
         return api
 
-    def _load_settings(self):
+    def _load_options(self):
         """
         Sets environment variables and loads an `engine.yaml` file if it exists.
         Makes its contents accessible in the engine as env variables, as well as
@@ -71,12 +60,12 @@ class EngineAPI:
 
         try:
             with open("engine.yaml", "r") as stream:
-                settings = yaml.safe_load(stream)
-                for key, value in settings.items():
+                options = yaml.safe_load(stream)
+                for key, value in options.items():
                     if not os.getenv(str(key.upper())):
                         os.environ[str(key.upper())] = str(value)
                 logging.info("engine.yaml successfully loaded.")
-                return settings
+                return options
         except FileNotFoundError:
             logging.warning("engine.yaml not found.")
             return {}

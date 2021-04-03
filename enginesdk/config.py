@@ -2,12 +2,29 @@ import logging
 import os
 import sys
 import time
+from functools import lru_cache
 
+from pydantic import BaseSettings
 from fastapi.security import OAuth2PasswordBearer
 from google.cloud import secretmanager_v1beta1 as secretmanager
 from google.cloud import storage
 
 from enginesdk.v1.schemas.secrets_config import SecretsConfig
+
+
+class Settings(BaseSettings):
+    engine_slug: str = os.getenv("ENGINE_SLUG")
+    callback_url: str = os.getenv("CALLBACK_URL")
+    project_id: str = os.getenv("PROJECT_ID", "Local")
+    revision: str = os.getenv("SHORT_SHA", "local")
+
+
+settings = Settings()
+
+
+@lru_cache()
+def get_settings():
+    return Settings()
 
 
 class Config:
@@ -53,9 +70,9 @@ if project_id:
 
 # if running locally
 else:
-    GCLOUD_CONFIG_PROJECT_ID = (
-        os.popen("gcloud config get-value project").read().strip()
-    )
-    gcs_client = storage.Client(project=GCLOUD_CONFIG_PROJECT_ID)
-    secrets_client = secretmanager.SecretManagerServiceClient()
     apisecrets = c.build_secrets_config()
+    #     GCLOUD_CONFIG_PROJECT_ID = (
+    #         os.popen("gcloud config get-value project").read().strip()
+    #     )
+    #     gcs_client = storage.Client(project=GCLOUD_CONFIG_PROJECT_ID)
+    # secrets_client = secretmanager.SecretManagerServiceClient()

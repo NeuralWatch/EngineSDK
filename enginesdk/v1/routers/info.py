@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 
 class Router:
-    def __init__(self, input, output, settings):
+    def __init__(self, predictor, options):
         self.router = APIRouter()
 
         @self.router.get("/schema")
@@ -14,7 +14,10 @@ class Router:
             (will be replaced by the /info route)
             """
 
-            return {"input": input.schema(), "output": output.schema()}
+            return {
+                "input": predictor.Input.schema(),
+                "output": predictor.Output.schema(),
+            }
 
         @self.router.get("/info")
         def get_info():
@@ -23,9 +26,9 @@ class Router:
             """
 
             return {
-                "engine": {k.lower(): v for k, v in settings.items()},
+                "engine": {k.lower(): v for k, v in options.items()},
                 "schema": {
-                    "input": input.schema(),
-                    "output": output.schema(),
+                    "input": predictor.Input.schema(),
+                    "output": predictor.Output.schema(),
                 },
             }
