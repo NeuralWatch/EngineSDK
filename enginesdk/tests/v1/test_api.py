@@ -2,9 +2,10 @@ import pytest
 from datetime import datetime
 from fastapi.testclient import TestClient
 from enginesdk.api import EngineAPI
-from enginesdk.config import settings
-
 from enginesdk.tests.v1.factories import PredictFactory
+from enginesdk.config import get_settings
+
+settings = get_settings()
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ class TestEngineAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "Service online"
-        assert data["version"] == settings.revision
+        assert data["version"] == settings.REVISION
         assert "time" in data
 
     def test_get_schema(self, client, test_predictor):
@@ -43,7 +44,7 @@ class TestEngineAPI:
             "input": test_predictor.Input.schema(),
             "output": test_predictor.Output.schema(),
         }
-        assert "engine" in data
+        assert "settings" in data
 
     def test_post_predict(self, client, test_predictor):
         response = client.post(

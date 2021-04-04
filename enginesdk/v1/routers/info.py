@@ -1,10 +1,11 @@
 import os
-
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from enginesdk.v1.schemas.settings import Settings
+from enginesdk.config import get_settings
 
 
 class Router:
-    def __init__(self, predictor, options):
+    def __init__(self, predictor):
         self.router = APIRouter()
 
         @self.router.get("/schema")
@@ -20,13 +21,17 @@ class Router:
             }
 
         @self.router.get("/info")
-        def get_info():
+        def get_info(
+            settings: Settings = Depends(get_settings),
+        ):
             """
             Endpoint for the engine room to obtain the engine's information
             """
 
             return {
-                "engine": {k.lower(): v for k, v in options.items()},
+                "settings": {
+                    k.lower(): settings.__dict__[k] for k in settings.__dict__
+                },
                 "schema": {
                     "input": predictor.Input.schema(),
                     "output": predictor.Output.schema(),

@@ -7,7 +7,8 @@ from urllib import parse, request
 from fastapi import APIRouter, BackgroundTasks, Body, Depends
 from starlette.responses import StreamingResponse
 
-from enginesdk.config import Settings, get_settings
+from enginesdk.v1.schemas.secrets import Secrets
+from enginesdk.config import get_secrets
 
 
 class Router:
@@ -43,7 +44,7 @@ class Router:
             gid: str,
             background_tasks: BackgroundTasks,
             input: predictor.Input = Body(..., example=predictor.factory.mock_input()),
-            settings: Settings = Depends(get_settings),
+            secrets: Secrets = Depends(get_secrets),
             callback_url: str = None,
         ):
             """Asynchronous prediction endpoint.
@@ -51,7 +52,7 @@ class Router:
             a background job. The result is sent via callback to the web back-end."""
             background_tasks.add_task(
                 async_predict_flow,
-                callback_url=callback_url or settings.callback_url,
+                callback_url=callback_url or secrets.CALLBACK_URL,
                 gid=gid,
                 input=input,
             )

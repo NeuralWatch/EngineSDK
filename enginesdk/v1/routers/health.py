@@ -5,7 +5,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends
 
-from enginesdk.config import Settings, get_settings
+from enginesdk.v1.schemas.secrets import Secrets
+from enginesdk.v1.schemas.settings import Settings
+from enginesdk.config import get_settings, get_secrets
 
 
 class Router:
@@ -19,7 +21,7 @@ class Router:
             """
             response = {
                 "message": "Service online",
-                "version": settings.revision,
+                "version": settings.REVISION,
                 "time": datetime.utcnow(),
             }
             return response
@@ -27,13 +29,14 @@ class Router:
         @self.router.post("/deployed")
         def trigger_deployed_hook(
             settings: Settings = Depends(get_settings),
+            secrets: Secrets = Depends(get_secrets),
         ):
             """
             Trigger the `deployed` hook, which registers this API to the engine room.
             """
 
             data = json.dumps(
-                {"type": "engine.deployed", "engine_slug": settings.engine_slug}
+                {"type": "engine.deployed", "engine_slug": settings.ENGINE_SLUG}
             ).encode("ascii")
-            req = request.Request(settings.callback_url, data=data)
+            req = request.Request(secrets.CALLBACK_URL, data=data)
             return request.urlopen(req)

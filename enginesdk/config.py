@@ -1,30 +1,17 @@
 import logging
-import os
+from os import getenv, popen
 import sys
 import time
+import yaml
 from functools import lru_cache
+from dotenv import dotenv_values
 
-from pydantic import BaseSettings
 from fastapi.security import OAuth2PasswordBearer
 from google.cloud import secretmanager_v1beta1 as secretmanager
 from google.cloud import storage
 
-from enginesdk.v1.schemas.secrets_config import SecretsConfig
-
-
-class Settings(BaseSettings):
-    engine_slug: str = os.getenv("ENGINE_SLUG")
-    callback_url: str = os.getenv("CALLBACK_URL")
-    project_id: str = os.getenv("PROJECT_ID", "Local")
-    revision: str = os.getenv("SHORT_SHA", "local")
-
-
-settings = Settings()
-
-
-@lru_cache()
-def get_settings():
-    return Settings()
+from enginesdk.v1.schemas.secrets import Secrets
+from enginesdk.v1.schemas.settings import Settings
 
 
 class Config:
@@ -44,35 +31,52 @@ class Config:
         return logger
 
     @staticmethod
-    def build_secrets_config(project_id: str = "") -> SecretsConfig:
-        result = SecretsConfig()
-        if not project_id:
-            return result
-        for secret_id in result.dict().keys():
-            version_path = secrets_client.secret_version_path(
-                project_id, secret_id, "latest"
-            )
-            secret_version = secrets_client.access_secret_version(version_path)
-            secret_data = secret_version.payload.data.decode("UTF-8")
-            setattr(result, secret_id, secret_data)
+    def build_settings() -> Settings:
+        result = Settings()
+
+        for setting_id, setting_data in dotenv_values(".settings").items():
+            try:
+                setattr(result, setting_id, setting_data)
+            except ValueError:
+                pass
+        return result
+
+    @staticmethod
+    def build_secrets(project_id: str = "") -> Secrets:
+        result = Secrets()
+        if project_id:
+            for secret_id in result.dict().keys():
+                version_path = secrets_client.secret_version_path(
+                    project_id, secret_id, "latest"
+                )
+                secret_version = secrets_client.access_secret_version(version_path)
+                secret_data = secret_version.payload.data.decode("UTF-8")
+                setattr(result, secret_id, secret_data)
         return result
 
 
 c = Config()
 logger = c.get_logger()
-project_id = os.getenv("PROJECT_ID")
+project_id = getenv("PROJECT_ID")
 
 # if running in a project, cloud run or cloud build
 if project_id:
     gcs_client = storage.Client(project=project_id)
     secrets_client = secretmanager.SecretManagerServiceClient()
-    apisecrets = c.build_secrets_config(project_id)
 
 # if running locally
 else:
-    apisecrets = c.build_secrets_config()
-    #     GCLOUD_CONFIG_PROJECT_ID = (
-    #         os.popen("gcloud config get-value project").read().strip()
-    #     )
-    #     gcs_client = storage.Client(project=GCLOUD_CONFIG_PROJECT_ID)
-    # secrets_client = secretmanager.SecretManagerServiceClient()
+    GCLOUD_CONFIG_PROJECT_ID = popen("gcloud config get-value project").read().strip()
+    if GCLOUD_CONFIG_PROJECT_ID:
+        gcs_client = storage.Client(project=GCLOUD_CONFIG_PROJECT_ID)
+        secrets_client = secretmanager.SecretManagerServiceClient()
+
+
+@lru_cache()
+def get_settings():
+    return c.build_settings()
+
+
+@lru_cache()
+def get_secrets():
+    return c.build_secrets(project_id)
