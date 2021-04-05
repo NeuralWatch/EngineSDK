@@ -3,27 +3,40 @@ import time
 
 
 class BasePredictor:
-    def __init__(self):
+    def __init__(self, schema_factory):
+        """
+        Initializes the predictor with a SchemaFactory object.
+        """
+        self._initialize()
+        self.factory = schema_factory
+        self.Input = type(schema_factory.mock_input())
+        self.Output = type(schema_factory.mock_output())
         self.model = self._load_model()
+
+    def _initialize(self):
+        """
+        Executes optional logic before loading the model.
+        """
+        pass
 
     def _load_model(self):
         """
         Returns the predictor object.
         """
-        pass
+        raise NotImplementedError()
 
     def _read_input(self, input):
         """
         Read input and implement pre processing steps.
         """
-        pass
+        raise NotImplementedError()
 
-    def _predict(self, input):
+    def _predict(self, model, input):
         """
         Perform the inference.
-        For example `self.model.predict(input)` or `self.model(input)`.
+        For example `model.predict(input)` or `model(input)`.
         """
-        pass
+        raise NotImplementedError()
 
     def _post_processing(self, model_input, prediction):
         """
@@ -31,7 +44,7 @@ class BasePredictor:
         - combining images
         - uploading image/video to cloud storage
         """
-        pass
+        raise NotImplementedError()
 
     def run(self, input):
         # Read input
@@ -42,7 +55,7 @@ class BasePredictor:
         # Perform inference
         begin_inference = time.perf_counter()
         logging.info(f"Starting Inference...")
-        prediction = self._predict(model_input)
+        prediction = self._predict(self.model, model_input)
         logging.info(
             f"Inference time: {time.perf_counter() - begin_inference:0.4f} seconds."
         )

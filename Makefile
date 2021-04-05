@@ -9,7 +9,7 @@ PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PROJECT_NAME = app
 PYTHON_INTERPRETER = python3
 SRC = enginesdk/
-TEST = tests/
+TEST = enginesdk/tests/
 
 #################################################################################
 # COMMANDS
@@ -38,7 +38,7 @@ lint:
 ## Run tests
 test:	
 		export MAIN_API_KEY="test-api"
-		$(PYTHON_INTERPRETER) -m poetry run pytest tests -s --cov=$(SRC) --cov-report html:./htmlcov --cov-fail-under 60 --log-cli-level DEBUG
+		$(PYTHON_INTERPRETER) -m poetry run pytest $(TEST) -s --cov=$(SRC) --cov-report html:./htmlcov --cov-fail-under 60 --log-cli-level DEBUG
 		$(PYTHON_INTERPRETER) -m poetry run coverage-badge -fo coverage.svg
 
 ## Set up the environment using poetry

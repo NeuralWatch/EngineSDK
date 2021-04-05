@@ -5,21 +5,22 @@ from fastapi.security.api_key import APIKeyCookie, APIKeyHeader, APIKeyQuery
 from pydantic import UUID4
 from starlette import status
 
-from enginesdk.config import apisecrets
+from enginesdk.config import get_secrets, get_settings
 
-SECRET_KEY = apisecrets.SECRET_KEY
-API_KEY_NAME = getenv("API_KEY_NAME", "access_token")
+settings, secrets = get_settings(), get_secrets()
 
 
 class AuthService:
     async def authenticate_admin(
         self,
-        api_key_query: str = Security(APIKeyQuery(name=API_KEY_NAME, auto_error=False)),
+        api_key_query: str = Security(
+            APIKeyQuery(name=settings.API_KEY_NAME, auto_error=False)
+        ),
         api_key_header: str = Security(
-            APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+            APIKeyHeader(name=settings.API_KEY_NAME, auto_error=False)
         ),
         api_key_cookie: str = Security(
-            APIKeyCookie(name=API_KEY_NAME, auto_error=False)
+            APIKeyCookie(name=settings.API_KEY_NAME, auto_error=False)
         ),
     ):
         if self._check_admin_apikey(api_key_query):
@@ -36,7 +37,7 @@ class AuthService:
 
     @staticmethod
     def _check_admin_apikey(apikey: UUID4) -> UUID4:
-        if apikey == SECRET_KEY:
+        if apikey == secrets.SECRET_KEY:
             try:
                 apikey = UUID4(apikey)
                 return apikey
