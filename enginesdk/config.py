@@ -57,19 +57,16 @@ class Config:
 
 c = Config()
 logger = c.get_logger()
-project_id = getenv("PROJECT_ID")
+project_id = (
+    # if running in a project, cloud run or cloud build
+    getenv("PROJECT_ID")
+    # if running locally (TODO: handle case when no local project found)
+    or popen("gcloud config get-value project").read().strip()
+)
 
-# if running in a project, cloud run or cloud build
 if project_id:
     gcs_client = storage.Client(project=project_id)
     secrets_client = secretmanager.SecretManagerServiceClient()
-
-# if running locally
-else:
-    GCLOUD_CONFIG_PROJECT_ID = popen("gcloud config get-value project").read().strip()
-    if GCLOUD_CONFIG_PROJECT_ID:
-        gcs_client = storage.Client(project=GCLOUD_CONFIG_PROJECT_ID)
-        secrets_client = secretmanager.SecretManagerServiceClient()
 
 
 @lru_cache()

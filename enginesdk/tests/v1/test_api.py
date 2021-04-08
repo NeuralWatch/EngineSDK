@@ -56,6 +56,7 @@ class TestEngineAPI:
 
     def test_post_predict_with_gid(self, client, test_predictor):
         response = client.post(
-            "/v1/predict/123", json=test_predictor.factory.mock_input().dict()
+            "/v1/predict/test",
+            json=test_predictor.factory.mock_input().dict(),
         )
         assert response.status_code == 200
