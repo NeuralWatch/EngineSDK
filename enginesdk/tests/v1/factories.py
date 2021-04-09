@@ -1,18 +1,21 @@
+from os import remove
+from urllib.request import urlretrieve
 from enginesdk.v1.services.predict import BasePredictor
 from enginesdk.v1.schemas.url import ImageUrl
+from enginesdk.v1.services.uploader import upload
 
 
 class SchemaFactory:
     @staticmethod
     def mock_input() -> ImageUrl:
         return ImageUrl(
-            image_url="https://images.theconversation.com/files/274523/original/file-20190515-60557-1xbt1cb.jpg"
+            image_url="https://res.cloudinary.com/trouni/image/upload/c_thumb,w_200,g_face/v1617982889/kaepler/engines/kaepler-engine/test_image.jpg"
         )
 
     @staticmethod
     def mock_output() -> ImageUrl:
         return ImageUrl(
-            image_url="https://images.theconversation.com/files/274523/original/file-20190515-60557-1xbt1cb.jpg"
+            image_url="https://res.cloudinary.com/trouni/image/upload/c_thumb,w_200,g_face/v1617982889/kaepler/engines/kaepler-engine/test_image.jpg"
         )
 
 
@@ -27,6 +30,7 @@ class Predictor(BasePredictor):
         """
         Read input and implement pre processing steps.
         """
+        urlretrieve(input.image_url, "temp.jpg")
         return input
 
     def _predict(self, model, input):
@@ -42,6 +46,13 @@ class Predictor(BasePredictor):
         - combining images
         - uploading image/video to cloud storage
         """
+        # Testing uploader service
+        upload(
+            "temp.jpg",
+            public_id="test_image",
+            overwrite=True,
+        )
+        remove("temp.jpg")
         return ImageUrl(image_url="Test output")
 
 
