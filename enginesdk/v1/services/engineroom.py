@@ -6,7 +6,9 @@ from enginesdk.config import get_secrets, get_settings
 
 
 def broadcast_online_status(
-    settings: Settings = get_settings(), secrets: Secrets = get_secrets()
+    settings: Settings = get_settings(),
+    secrets: Secrets = get_secrets(),
+    url: str = None,
 ):
     """Triggers the `online` hook, which notifies to the engine room that this API is online."""
 
@@ -19,8 +21,7 @@ def broadcast_online_status(
             "revision": settings.REVISION,
         }
     ).encode("ascii")
-
-    req = request.Request(secrets.CALLBACK_URL, data=data)
+    req = request.Request(url or secrets.CALLBACK_URL, data=data)
     return request.urlopen(req)
 
 

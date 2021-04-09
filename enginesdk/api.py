@@ -8,7 +8,7 @@ from enginesdk.v1.routers import docs, health, predict, info
 from enginesdk.config import get_settings
 from enginesdk.v1.services.engineroom import broadcast_online_status
 
-# Register the engine to the Engine Room
+# Broadcast engine's online status to the Engine Room
 broadcast_online_status()
 
 
