@@ -1,7 +1,4 @@
-import os
-from urllib import request
 from datetime import datetime
-
 from fastapi import APIRouter, Depends
 
 from enginesdk.v1.schemas.settings import Settings

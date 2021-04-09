@@ -1,6 +1,5 @@
 import re
-from os import getenv
-import cloudinary
+from cloudinary import config, uploader
 from enginesdk.config import get_settings, get_secrets
 
 
@@ -12,10 +11,10 @@ def _cloudinary_upload(filename, **options):
         r"^cloudinary://(?P<api_key>\d+):(?P<api_secret>[a-zA-Z\d]+)@(?P<cloud_name>[a-z\d]+)",
         secrets.CLOUDINARY_URL,
     ).groupdict()
-    cloudinary.config(**credentials)
+    config(**credentials)
 
     SLUG = settings.ENGINE_SLUG
-    BRANCH_NAME = getenv("BRANCH_NAME", "debug")
+    BRANCH_NAME = settings.BRANCH_NAME
 
     options = {
         "folder": f"kaepler/engines/{SLUG}",
@@ -23,7 +22,7 @@ def _cloudinary_upload(filename, **options):
         **options,
     }
 
-    return cloudinary.uploader.upload(filename, **options)
+    return uploader.upload(filename, **options)
 
 
 def upload(filename, service="cloudinary", **options):

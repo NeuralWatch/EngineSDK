@@ -1,5 +1,4 @@
-import os
-import logging
+from os import environ, getenv
 
 import google.cloud.logging
 from fastapi import FastAPI
@@ -16,7 +15,7 @@ class EngineAPI:
     def __init__(self, predictor):
         """Instantiates a FastAPI application with pre-configured routes and services for AI Engines.
         The constructor expects a predictor object inheriting from services.predict.BasePredictor."""
-        os.environ["TZ"] = "UTC"
+        environ["TZ"] = "UTC"
 
         self.settings = get_settings()
         self._set_cloud_logging()
@@ -26,7 +25,7 @@ class EngineAPI:
         )
 
     def _create_api(self, predictor):
-        title = f"{self.settings.ENGINE_NAME}: {os.getenv('PROJECT_ID', 'Local')}"
+        title = f"{self.settings.ENGINE_NAME}: {self.settings.PROJECT_ID}"
 
         api = FastAPI(
             title=title,
@@ -52,8 +51,8 @@ class EngineAPI:
         return api
 
     def _set_cloud_logging(self):
-        # If running in a Project, Cloud Run or Cloud Build
-        if os.getenv("PROJECT_ID"):
+        # If running in a Project, Cloud Run or Cloud Build (check ENV, not settings)
+        if getenv("PROJECT_ID"):
             client = google.cloud.logging.Client()
             client.get_default_handler()
             client.setup_logging()

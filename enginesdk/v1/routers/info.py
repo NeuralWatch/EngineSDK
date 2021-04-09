@@ -1,4 +1,3 @@
-import os
 from fastapi import APIRouter, Depends
 from enginesdk.v1.schemas.settings import Settings
 from enginesdk.v1.schemas.secrets import Secrets

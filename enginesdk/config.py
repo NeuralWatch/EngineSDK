@@ -1,13 +1,9 @@
 import logging
-from os import getenv, popen
-import sys
 import time
-import yaml
+from os import getenv, popen
 from functools import lru_cache
-
 from fastapi.security import OAuth2PasswordBearer
-from google.cloud import secretmanager_v1beta1 as secretmanager
-from google.cloud import storage
+from google.cloud import storage, secretmanager_v1beta1 as secretmanager
 
 from enginesdk.v1.schemas.secrets import Secrets
 from enginesdk.v1.schemas.settings import Settings

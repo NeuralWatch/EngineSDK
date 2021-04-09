@@ -1,5 +1,3 @@
-from os import getenv
-
 from fastapi import HTTPException, Security
 from fastapi.security.api_key import APIKeyCookie, APIKeyHeader, APIKeyQuery
 from pydantic import UUID4
