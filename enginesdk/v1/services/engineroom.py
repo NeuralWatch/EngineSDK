@@ -5,14 +5,14 @@ from enginesdk.v1.schemas.settings import Settings
 from enginesdk.config import get_secrets, get_settings
 
 
-def register_engine(
+def broadcast_online_status(
     settings: Settings = get_settings(), secrets: Secrets = get_secrets()
 ):
-    """Trigger the `deployed` hook, which registers this AI engine to the engine room."""
+    """Triggers the `online` hook, which notifies to the engine room that this API is online."""
 
     data = json.dumps(
         {
-            "type": "engine.deployed",
+            "type": "engine.online",
             "engine_slug": settings.ENGINE_SLUG,
             "service_url": settings.SERVICE_URL,
             "version": settings.VERSION,

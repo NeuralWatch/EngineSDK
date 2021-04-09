@@ -6,14 +6,16 @@ from fastapi import FastAPI
 
 from enginesdk.v1.routers import docs, health, predict, info
 from enginesdk.config import get_settings
+from enginesdk.v1.services.engineroom import broadcast_online_status
+
+# Register the engine to the Engine Room
+broadcast_online_status()
 
 
 class EngineAPI:
     def __init__(self, predictor):
-        """
-        Instantiates a FastAPI application with pre-configured routes and services for AI Engines.
-        The constructor expects a predictor object inheriting from services.predict.BasePredictor.
-        """
+        """Instantiates a FastAPI application with pre-configured routes and services for AI Engines.
+        The constructor expects a predictor object inheriting from services.predict.BasePredictor."""
         os.environ["TZ"] = "UTC"
 
         self.settings = get_settings()

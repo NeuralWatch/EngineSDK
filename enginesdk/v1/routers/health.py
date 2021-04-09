@@ -4,10 +4,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends
 
-from enginesdk.v1.schemas.secrets import Secrets
 from enginesdk.v1.schemas.settings import Settings
-from enginesdk.config import get_settings, get_secrets
-from enginesdk.v1.services.engineroom import register_engine
+from enginesdk.config import get_settings
 
 
 class Router:
@@ -23,12 +21,3 @@ class Router:
                 "time": datetime.utcnow(),
             }
             return response
-
-        @self.router.post("/deployed")
-        def trigger_deployed_hook(
-            settings: Settings = Depends(get_settings),
-            secrets: Secrets = Depends(get_secrets),
-        ):
-            """Trigger the `deployed` hook, which registers this API to the engine room."""
-
-            return register_engine(settings, secrets)
