@@ -4,7 +4,6 @@ import sys
 import time
 import yaml
 from functools import lru_cache
-from dotenv import dotenv_values
 
 from fastapi.security import OAuth2PasswordBearer
 from google.cloud import secretmanager_v1beta1 as secretmanager
@@ -32,25 +31,20 @@ class Config:
 
     @staticmethod
     def build_settings() -> Settings:
-        result = Settings()
-
-        for setting_id, setting_data in dotenv_values(".settings").items():
-            try:
-                setattr(result, setting_id, setting_data)
-            except ValueError:
-                pass
-        return result
+        return Settings()
 
     @staticmethod
     def build_secrets(project_id: str = "") -> Secrets:
         result = Secrets()
         if project_id:
-            for secret_id in result.dict().keys():
-                version_path = secrets_client.secret_version_path(
-                    project_id, secret_id, "latest"
-                )
-                secret_version = secrets_client.access_secret_version(version_path)
-                secret_data = secret_version.payload.data.decode("UTF-8")
+            for secret_id, secret_data in result.dict().items():
+                if not secret_data:
+                    # Only load cloud secrets if ENV is not set (allows override)
+                    version_path = secrets_client.secret_version_path(
+                        project_id, secret_id, "latest"
+                    )
+                    secret_version = secrets_client.access_secret_version(version_path)
+                    secret_data = secret_version.payload.data.decode("UTF-8")
                 setattr(result, secret_id, secret_data)
         return result
 

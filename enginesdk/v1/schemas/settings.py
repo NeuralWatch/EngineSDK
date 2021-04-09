@@ -1,5 +1,8 @@
 from os import getenv
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv(".settings")
 
 
 class Settings(BaseModel):
