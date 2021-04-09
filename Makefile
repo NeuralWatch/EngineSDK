@@ -36,8 +36,7 @@ lint:
 		$(PYTHON_INTERPRETER) -m poetry run flake8 $(SRC) --count --exit-zero --per-file-ignores="__init__.py:F401" --max-complexity=10 --max-line-length=127 --statistics	
 		
 ## Run tests
-test:	
-		export MAIN_API_KEY="test-api"
+test:
 		$(PYTHON_INTERPRETER) -m poetry run pytest $(TEST) -s --cov=$(SRC) --cov-report html:./htmlcov --cov-fail-under 60 --log-cli-level DEBUG
 		$(PYTHON_INTERPRETER) -m poetry run coverage-badge -fo coverage.svg
 

@@ -1,11 +1,8 @@
 import pytest
 from datetime import datetime
 from fastapi.testclient import TestClient
-from enginesdk.api import EngineAPI
 from enginesdk.tests.v1.factories import PredictFactory
-from enginesdk.config import get_settings
-
-settings = get_settings()
+from enginesdk import api, config
 
 
 @pytest.fixture
@@ -15,14 +12,21 @@ def test_predictor():
 
 class TestEngineAPI:
     @pytest.fixture
-    def client(self, test_predictor):
-        api = EngineAPI(test_predictor).api
+    def engine_api(self, test_predictor):
+        return api.EngineAPI(test_predictor).api
 
-        return TestClient(api)
+    @pytest.fixture
+    def client(self, engine_api, test_predictor):
+        return TestClient(engine_api)
 
-    def test_get_healthcheck(self, client):
+    @pytest.fixture
+    def settings(self):
+        return config.get_settings()
+
+    def test_get_healthcheck(self, client, settings):
         response = client.get("/healthcheck")
         assert response.status_code == 200
+
         data = response.json()
         assert data["message"] == "Service online"
         assert data["version"] == settings.REVISION
@@ -31,20 +35,28 @@ class TestEngineAPI:
     def test_get_schema(self, client, test_predictor):
         response = client.get("/v1/schema")
         assert response.status_code == 200
-        assert response.json() == {
+
+        data = response.json()
+        assert data == {
             "input": test_predictor.Input.schema(),
             "output": test_predictor.Output.schema(),
         }
 
-    def test_get_info(self, client, test_predictor):
+    def test_broadcast_online_status(self, client):
+        response = client.get("/v1/broadcast")
+        assert response.status_code == 200
+
+    def test_get_info(self, client, test_predictor, settings):
         response = client.get("/v1/info")
         assert response.status_code == 200
+
         data = response.json()
         assert data["schema"] == {
             "input": test_predictor.Input.schema(),
             "output": test_predictor.Output.schema(),
         }
         assert "settings" in data
+        assert data["settings"]["engine_slug"] == settings.ENGINE_SLUG
 
     def test_post_predict(self, client, test_predictor):
         response = client.post(

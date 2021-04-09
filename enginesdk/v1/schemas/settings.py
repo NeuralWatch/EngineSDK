@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv(".settings")
 
+# TODO: Remove this and override ENVs in test_api.py
+load_dotenv("test.env")
+
 
 class Settings(BaseModel):
     ENGINE_NAME: str = getenv("ENGINE_NAME", "Kaepler Engine")
